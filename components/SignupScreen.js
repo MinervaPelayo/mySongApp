@@ -6,7 +6,8 @@ import {
   ImageBackground,
   Image,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } from "react-native";
 
 import bgImage from "../images/background.jpg";
@@ -16,43 +17,43 @@ import * as firebase from "firebase";
 
 const SignupScreen = props => {
   const { navigate } = props.navigation;
-
   const [securePass, setSecurePass] = useState(true);
   const [iconName, setIconName] = useState("ios-eye");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
-  const [error, setError] = useState("");
 
+  //Switch left icon from password input box and change password vissibility
   iconPress = () => {
     setSecurePass(!securePass);
     let iconName = securePass ? "ios-eye-off" : "ios-eye";
     setIconName(iconName);
   };
 
+  //Check if password and password confirmation input boxes match
+  //If they match, create a new user with firebase and navigate to application
   onSignupPress = () => {
-    setLoading(true);
-    setError("");
-    firebase.auth().createUserWithEmailAndPassword(email, password)
-    .then(()=>{
-      firebase.auth().signInWithEmailAndPassword(email, password)
-    })
-    .then(() =>{
-      setLoading(false);
-      navigate("HomeScreen");
-    })
-    .catch(()=>{
-      setError("Authentication Failed");
-      setLoading(false); 
-    })
-  };
-
-  renderLoading = () =>{
-    if(loading){
-      return <Text> Loading... </Text>
+    if (password !== passwordConfirm) {
+      Alert.alert("Passwords do not match");
+      return;
     }
-  };
 
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(
+        () => {
+          const navActions = StackActions.reset({
+            index: 0,
+            actions: [NavigationActions.navigate({ routeName: "TabNavigator" })]
+          });
+          props.navigation.dispatch(navActions);
+        },
+        error => {
+          Alert.alert(error.message);
+        }
+      );
+  };
 
   return (
     <ImageBackground source={bgImage} style={styles.backgroundContainer}>
@@ -60,18 +61,19 @@ const SignupScreen = props => {
         <Image source={logo} style={styles.logo} />
         <Text style={styles.logoText}>MYSONG</Text>
       </View>
-
       <View style={styles.inputContainer}>
         <Icon name={"ios-mail"} size={28} style={styles.inputIcon} />
         <TextInput
           style={styles.input}
           placeholder={"Email"}
           placeholderTextColor={"rgba(255, 255, 255, 0.7)"}
-          onChangeText={(email) => setEmail(email)}
+          onChangeText={email => setEmail(email)}
           value={email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
         />
       </View>
-
       <View style={styles.inputContainer}>
         <Icon name={"ios-lock"} size={28} style={styles.inputIcon} />
         <TextInput
@@ -79,15 +81,13 @@ const SignupScreen = props => {
           placeholder={"Password"}
           secureTextEntry={securePass}
           placeholderTextColor={"rgba(255, 255, 255, 0.7)"}
-          onChangeText={(password)=>setPassword(password)}
+          onChangeText={password => setPassword(password)}
           value={password}
         />
-        
         <TouchableOpacity style={styles.btnEye} onPress={iconPress}>
           <Icon name={iconName} size={26} />
         </TouchableOpacity>
       </View>
-
       <View style={styles.inputContainer}>
         <Icon name={"ios-lock"} size={28} style={styles.inputIcon} />
         <TextInput
@@ -95,22 +95,21 @@ const SignupScreen = props => {
           placeholder={"Confirm Password"}
           secureTextEntry={securePass}
           placeholderTextColor={"rgba(255, 255, 255, 0.7)"}
-          onChangeText={(passwordConfirm)=>setPasswordConfirm(passwordConfirm)}
+          onChangeText={passwordConfirm => setPasswordConfirm(passwordConfirm)}
           value={passwordConfirm}
         />
-        
         <TouchableOpacity style={styles.btnEye} onPress={iconPress}>
           <Icon name={iconName} size={26} />
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.btnLogin} onPress={(onSignupPress)}>
-        <Text style={styles.loginText}>Signup</Text>
+      <TouchableOpacity style={styles.btnLogin} onPress={onSignupPress}>
+        <Text style={styles.loginText}>Sign Up</Text>
       </TouchableOpacity>
-      
       <View style={styles.signUpContainer}>
         <Text style={styles.signUpText}>Already have an account? </Text>
-        <Text style={styles.signUpBtn} onPress={() => navigate("Login")}>Login</Text>
+        <Text style={styles.signUpBtn} onPress={() => navigate("Login")}>
+          Log In
+        </Text>
       </View>
     </ImageBackground>
   );

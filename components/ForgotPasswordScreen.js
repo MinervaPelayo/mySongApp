@@ -6,7 +6,8 @@ import {
   ImageBackground,
   Image,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } from "react-native";
 
 import bgImage from "../images/background.jpg";
@@ -14,40 +15,18 @@ import logo from "../images/logo.png";
 import Icon from "react-native-vector-icons/Ionicons";
 import * as firebase from "firebase";
 
-const LoginScreen = (props) => {
+const ForgotPasswordScreen = props => {
   const { navigate } = props.navigation;
-
-  const [securePass, setSecurePass] = useState(true);
-  const [iconName, setIconName] = useState("ios-eye");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  iconPress = () => {
-    setSecurePass(!securePass);
-    let iconName = securePass ? "ios-eye-off" : "ios-eye";
-    setIconName(iconName);
-  };
-
-  onLoginPress = () => {
-    setLoading(true);
-    setError("");
-    firebase.auth().signInWithEmailAndPassword(email, password)
-    .then(() =>{
-      setLoading(false);
-      navigate("HomeScreen");
-    })
-    .catch(()=>{
-      setError("Authentication Failed");
-      setLoading(false); 
-    })
-  };
-
-  renderLoading = () =>{
-    if(loading){
-      return <Text> Loading... </Text>
-    }
+  //Using firebase authentication, send and email to the user to reset the password 
+  const onResetPress = () => {
+      firebase.auth().sendPasswordResetEmail(email)
+        .then(()=>{
+            Alert.alert("Password reset email has been sent.")
+        },(error)=>{
+           Alert.alert(error.message);  
+        });
   };
 
   return (
@@ -56,55 +35,31 @@ const LoginScreen = (props) => {
         <Image source={logo} style={styles.logo} />
         <Text style={styles.logoText}>MYSONG</Text>
       </View>
-
       <View style={styles.inputContainer}>
         <Icon name={"ios-mail"} size={28} style={styles.inputIcon} />
         <TextInput
           style={styles.input}
           placeholder={"Email"}
           placeholderTextColor={"rgba(255, 255, 255, 0.7)"}
+          onChangeText={email => setEmail(email)}
+          value={email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
         />
       </View>
-
-      <View style={styles.inputContainer}>
-        <Icon name={"ios-lock"} size={28} style={styles.inputIcon} />
-        <TextInput
-          style={styles.input}
-          placeholder={"Password"}
-          secureTextEntry={securePass}
-          placeholderTextColor={"rgba(255, 255, 255, 0.7)"}
-        />
-        <TouchableOpacity style={styles.btnEye} onPress={iconPress}>
-          <Icon name={iconName} size={26} />
-        </TouchableOpacity>
-  
-      </View>
-      <Text>{error}</Text>
-
-      <TouchableOpacity
-        style={styles.btnLogin}
-        onPress={onLoginPress}
-      >
-        <Text style={styles.loginText}>Logiiin</Text>
+      <TouchableOpacity style={styles.btnLogin} onPress={onResetPress}>
+        <Text style={styles.loginText}>Reset Password</Text>
       </TouchableOpacity>
-
       <View style={styles.signUpContainer}>
-        <Text style={styles.signUpBtn} onPress={() => navigate("ForgotPassword")}>
-          Forgot Password
-        </Text>
-      </View>
-
-      <View style={styles.signUpContainer}>
-        <Text style={styles.signUpText}>New? </Text>
-        <Text style={styles.signUpBtn} onPress={() => navigate("Signup")}>
-          Create Account
+        <Text style={styles.signUpText}>Know your password? </Text>
+        <Text style={styles.signUpBtn} onPress={() => navigate("Login")}>
+          Log In
         </Text>
       </View>
     </ImageBackground>
   );
 };
-
-LoginScreen.navigationOptions = ({ navigate }) => ({ title: "Login" });
 
 const styles = StyleSheet.create({
   backgroundContainer: {
@@ -152,7 +107,7 @@ const styles = StyleSheet.create({
     right: 37
   },
   btnLogin: {
-    width: 120,
+    width: 140,
     height: 45,
     borderRadius: 25,
     backgroundColor: "#432577",
@@ -179,4 +134,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default LoginScreen;
+export default ForgotPasswordScreen;
